@@ -299,11 +299,11 @@ jobs:
           command: |
             cd backend
             npm i
-            npm run migrations > /tmp/migration.log
+            npm run migrations > /migration.log
       - run:
           name: Send migration results to memstash
           command: |
-            migration_succesful=$(cat migration.log | grep -c "has been executed successfully")
+            migration_succesful=$(cat /migration.log | grep -c "has been executed successfully")
             if [[ $MIGRATION_COUNT -gt 0 ]];
             then
               # put it in the shared memory
