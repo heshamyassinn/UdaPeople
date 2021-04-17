@@ -268,7 +268,7 @@ jobs:
           command: |
             export ANSIBLE_HOST_KEY_CHECKING=false
             cd .circleci/ansible
-            # ansible-playbook configure-server.yml -i inventory.txt
+            ansible-playbook configure-server.yml -i inventory.txt
     
       # Here's where you will add some code to rollback on failure      
       - slack-fail
