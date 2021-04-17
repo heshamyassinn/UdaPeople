@@ -60,6 +60,10 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - run:
+          name: Install prerequsites
+          command: |            
+            sudo apt -y install jq tar gzip git curl
       - restore_cache:
           keys: [frontend-build]
       - run:
@@ -78,6 +82,10 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - run:
+          name: Install prerequsites
+          command: |            
+            sudo apt -y install jq tar gzip git curl
       - restore_cache:
           keys: [backend-build]
       - run:
@@ -100,6 +108,10 @@ jobs:
       # Restore from cache
       # Your job code here
       - checkout
+      - run:
+          name: Install prerequsites
+          command: |            
+            sudo apt -y install jq tar gzip git curl
       - restore_cache:
           keys: [frontend-build]
       - run:
@@ -107,9 +119,7 @@ jobs:
           command: |
             cd frontend
             npm run test
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+      - slack-fail
             
   test-backend:
     docker:
@@ -120,6 +130,10 @@ jobs:
       # Restore from cache
       # Your job code here
       - checkout
+      - run:
+          name: Install prerequsites
+          command: |            
+            sudo apt -y install jq tar gzip git curl
       - restore_cache:
           keys: ["backend-build"]
       - run:
@@ -127,9 +141,7 @@ jobs:
           command: |
             cd backend
             npm run test
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+      - slack-fail
 
   scan-frontend:
     docker:
@@ -140,6 +152,10 @@ jobs:
       # Restore from cache
       # Your job code here
       - checkout
+      - run:
+          name: Install prerequsites
+          command: |            
+            sudo apt -y install jq tar gzip git curl
       - restore_cache:
           keys: [frontend-build]
       - run:
@@ -147,9 +163,7 @@ jobs:
           command: |
             cd frontend
             npm audit fix --audit-level=critical --force
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+      - slack-fail
 
 
   scan-backend:
@@ -161,6 +175,10 @@ jobs:
       # Restore from cache
       # Your job code here
       - checkout
+      - run:
+          name: Install prerequsites
+          command: |            
+            sudo apt -y install jq tar gzip git curl
       - restore_cache:
           keys: [backend-build]
       - run:
@@ -168,9 +186,7 @@ jobs:
           command: |
             cd backend
             npm audit fix --audit-level=critical --force
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
+      - slack-fail
 
 
   deploy-infrastructure:
