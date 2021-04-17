@@ -73,7 +73,7 @@ jobs:
             sudo npm i
             sudo npm run build
       - save_cache:
-          paths: [frontend/node_modules]
+          paths: ~/project/frontend/node_modules
           key: frontend-build
       - slack-fail
 
@@ -95,7 +95,7 @@ jobs:
              npm i
              npm run build
       - save_cache:
-          paths: [backend/node_modules]
+          paths: ~/project/backend/node_modules
           key: backend-build
       - slack-fail
 
@@ -118,6 +118,7 @@ jobs:
           name: Run frontend tests
           command: |
             cd frontend
+            npm i
             npm run test
       - slack-fail
             
