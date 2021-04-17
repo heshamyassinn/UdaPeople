@@ -290,12 +290,17 @@ jobs:
   run-migrations:
     docker:
       # Docker image here that supports NodeJS
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       # Checkout code from git
       - checkout
       - restore_cache:
           keys: [backend-build]
+      - run:
+          name: Install dependencies
+          command: |
+            curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+            yum -y install nodejs npm tar gzip jq git
       - run:
           name: Run migrations
           command: |
@@ -305,13 +310,14 @@ jobs:
       - run:
           name: Send migration results to memstash
           command: |
-            migration_succesful=$(cat migration.log | grep -c "has been executed successfully")
+            MIGRATION_COUNT=`grep -c "has been executed successfully" /tmp/migration.log || true`
+            echo "migrations count: ${MIGRATION_COUNT}"
             if [[ $MIGRATION_COUNT -gt 0 ]];
             then
               # put it in the shared memory
               curl -H "Content-Type: text/plain" \
-              -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" --request PUT \
-              --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+               -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5 \
+               --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
      # Here's where you will add some code to rollback on failure      
       - slack-fail
