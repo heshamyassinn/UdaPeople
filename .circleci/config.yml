@@ -294,14 +294,15 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      # - restore_cache:
-      #     keys: [backend-build]
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Run migrations
           command: |
             cd backend
-            npm i
-            npm run migrations > migration.log
+            sudo npm i
+            sudo npm audit fix --audit-level=critical --force
+            sudo npm run migrations > migration.log
       - run:
           name: Send migration results to memstash
           command: |
