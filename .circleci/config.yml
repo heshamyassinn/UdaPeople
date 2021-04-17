@@ -310,7 +310,7 @@ jobs:
       - run:
           name: Send migration results to memstash
           command: |
-            MIGRATION_COUNT=`grep -c "has been executed successfully" /tmp/migration.log || true`
+            MIGRATION_COUNT=`grep -c "has been executed successfully" migration.log || true`
             echo "migrations count: ${MIGRATION_COUNT}"
             if [[ $MIGRATION_COUNT -gt 0 ]];
             then
