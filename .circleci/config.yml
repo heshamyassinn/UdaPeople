@@ -299,7 +299,7 @@ jobs:
           command: |
             cd backend
             npm i
-            npm run migrations > /migration.log
+            sudo npm run migrations > /migration.log
       - run:
           name: Send migration results to memstash
           command: |
