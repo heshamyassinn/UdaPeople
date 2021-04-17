@@ -246,43 +246,29 @@ jobs:
 
   configure-infrastructure:
     docker:
-      # Docker image here that supports Ansible
       - image: python:3.7-alpine3.11
     steps:
       # Checkout code from git
-      # Add ssh keys with fingerprint
-      # attach workspace
       - checkout
+      # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints:
             - "e1:a5:ab:2c:de:71:e3:47:05:ba:8f:29:61:5a:2a:1e"
+
+      # attach workspace
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible # install the dependencies needed for your playbook
-            cat .circleci/ansible/inventory.txt
-      
-      - attach_workspace:
-          at: ~/
-      
+            apk add --update ansible
       - run:
           name: Configure server
           command: |
-            echo ENVIRONMENT=production > "backend/.env"
-            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
-            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
-            echo NODE_ENV=production >> "backend/.env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
-
-            cd ~/project/.circleci/ansible
-            ansible-playbook -i inventory.txt configure-server.yml
-      
+            export ANSIBLE_HOST_KEY_CHECKING=false
+            cd .circleci/ansible
+            # ansible-playbook configure-server.yml -i inventory.txt
+    
       # Here's where you will add some code to rollback on failure      
       - slack-fail
       - destroy-environment
@@ -294,30 +280,44 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
+      - aws-cli/setup
       - restore_cache:
           keys: [backend-build]
+      - run:
+          name: Create .env file
+          command: |
+            touch backend/.env
+            echo ENVIRONMENT=production >> "backend/.env"
+            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+            cat backend/.env
       - run:
           name: Run migrations
           command: |
             cd backend
-            sudo npm i
-            sudo npm audit fix --audit-level=critical --force
-            sudo npm run build
-            sudo npm run migrations > migration.log
+            npm run migrations > migration.log
+            export migration_status=$(cat migration.log | grep -c "has been executed successfully")
       - run:
           name: Send migration results to memstash
           command: |
-            MIGRATION_COUNT=`grep -c "has been executed successfully" migration.log || true`
-            echo "migrations count: ${MIGRATION_COUNT}"
-            if [[ $MIGRATION_COUNT -gt 0 ]];
+            if [ $migration_status > 0 ] 
             then
-              # put it in the shared memory
               curl -H "Content-Type: text/plain" \
-               -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5 \
-               --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+                  -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+                  --request PUT --data "1" \
+                  https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              else
+                  echo "No migration"
             fi
-     # Here's where you will add some code to rollback on failure      
-      - slack-fail
+      # Here's where you will add some code to rollback on failure
+      - revert-migrations
       - destroy-environment
 
   deploy-frontend:
