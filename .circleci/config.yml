@@ -313,10 +313,9 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
 
             cd backend
-            sudo npm install
+            npm install
             npm audit fix --audit-level=critical --force
-            npm run build
-            sudo npm run migrations > migration.log
+            npm run migrations > migration.log
       - run:
           name: Send migration results to memstash
           command: |
