@@ -291,8 +291,7 @@ jobs:
       - run:
           name: Create .env file
           command: |
-            touch backend/.env
-            echo ENVIRONMENT=production >> "backend/.env"
+            echo ENVIRONMENT=production > "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
@@ -303,11 +302,17 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             cat backend/.env
+
+            echo $TYPEORM_HOST
+            echo $TYPEORM_PORT
+            echo $TYPEORM_USERNAME
+            echo $TYPEORM_PASSWORD
+            echo $TYPEORM_DATABASE
       - run:
           name: Run migrations
           command: |
             cd backend
-            npm i
+            npm install
             npm run migrations > migration.log
             export migration_status=$(cat migration.log | grep -c "has been executed successfully")
       - run:
