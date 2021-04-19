@@ -493,6 +493,10 @@ jobs:
       # Checkout code from git
       - checkout
       - run:
+          name: Install dependencies
+          command: |
+            yum -y install jq tar gzip git curl
+      - run:
           name: Get old stack workflow id
           command: |
             # your code here
