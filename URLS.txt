@@ -1,1 +1,2 @@
 [URL01] https://github.com/heshamyassinn/UdaPeople
+[URL02] http://udapeople-7e38cc8.s3-website-us-east-1.amazonaws.com
