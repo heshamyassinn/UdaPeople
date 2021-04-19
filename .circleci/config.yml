@@ -267,21 +267,9 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
-            cat .circleci/ansible/inventory.txt
       - run:
           name: Configure server
           command: |
-            echo ENVIRONMENT=production > "backend/.env"
-            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
-            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
-            echo NODE_ENV=production >> "backend/.env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             export ANSIBLE_HOST_KEY_CHECKING=false
             cd .circleci/ansible
             ansible-playbook configure-server.yml -i inventory.txt
@@ -301,36 +289,38 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Run migrations
+          name: Create .env file
           command: |
             echo ENVIRONMENT=production > "backend/.env"
-            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
-            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
-            echo NODE_ENV=production >> "backend/.env"
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
             echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
-
+            cat backend/.env
+      - run:
+          name: Run migrations
+          command: |
             cd backend
-            sudo npm install
-            npm audit fix --audit-level=critical --force
-            npm run build
-            sudo npm run migrations > migration.log
-            cat migration.log
-            migration_succesful=$(cat migration.log | grep -c "has been executed successfully")
-            if [ $migration_succesful > 0 ]; then exit 0; else exit 1; fi;
-
+            npm install
+            npm run migrations > /temp/migration.log
+            export migration_status=$(cat /temp/migration.log | grep -c "has been executed successfully")
       - run:
           name: Send migration results to memstash
           command: |
+            if [ $migration_status > 0 ] 
+            then
               curl -H "Content-Type: text/plain" \
                   -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
                   --request PUT --data "1" \
                   https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              else
+                  echo "No migration"
+            fi
       # Here's where you will add some code to rollback on failure
       - slack-fail
       - revert-migrations
@@ -339,46 +329,50 @@ jobs:
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       # Checkout code from git
       - checkout
-      - attach_workspace:
-          at: ~/
       - run:
           name: Install dependencies
           command: |
-            cd frontend
-            sudo npm install webpack-dev-server -g
-            sudo npm install
+            curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+            yum -y install nodejs npm tar gzip jq git
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(sed -n 2p .circleci/ansible/inventory.txt)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo ENVIRONMENT=production > "frontend/.env"
-            echo NODE_ENV=production >> "frontend/.env"
-            echo API_URL=$API_URL >> "frontend/.env"
-            echo $API_URL
+            # your code here
+            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
+            export API_URL="https://${BACKEND_IP}:3030"
+            echo "${API_URL}"
       - run:
           name: Build frontend
-          command: |
+          command: |            
             cd frontend
-            ls -la
-            cat .env
+            npm i
+
+            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
+            export API_URL="https://${BACKEND_IP}:3030"
+            export NODE_ENV=production
             npm run build
-      - aws-cli/setup
       - run:
           name: Deploy frontend objects
           command: |
-            aws s3 cp --recursive frontend/dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}"
+            cd frontend
+            cp test.env ./dist/
+            # deploy to s3 bucket
+            aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - run:
           name: Create S3 bucket url
           command: |
             LOCATION=`aws s3api get-bucket-location --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7} --output text | tr -d '\n'`
             S3_URL="udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-${LOCATION}.amazonaws.com/index.html"
             echo $S3_URL
-            curl -H "Content-Type: text/plain" -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" --request PUT --data "$S3_URL" \
+            curl -H "Content-Type: text/plain" \
+            -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+            --request PUT --data "$S3_URL" \
             https://api.memstash.io/values/S3_URL_${CIRCLE_WORKFLOW_ID:0:7}
 
       # Here's where you will add some code to rollback on failure      
@@ -388,7 +382,7 @@ jobs:
   deploy-backend:
     docker:
       # Docker image here that supports Ansible
-      - image: python:3.7-alpine3.11
+      - image: willhallonline/ansible:2.10-ubuntu-18.04
     steps:
       # Checkout code from git
       - checkout
@@ -396,27 +390,39 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "08:d1:57:80:3f:61:d1:dc:35:66:ef:f1:95:e0:ba:1f"
+      - run:
+          name: Install dependencies
+          command: |
+            apt -y update
+            apt -y install jq tar gzip git curl
+            curl -sL https://deb.nodesource.com/setup_12.x | bash -
+            apt -y install nodejs
+      # - restore_cache:
+      #     keys: ["backend-build"]
       # attach workspace
       - attach_workspace:
           at: ~/
       - run:
-          name: Install dependencies
+          name: Build backend
           command: |
-            apk add --update ansible openssh-client tar gzip
-      - restore_cache:
-          keys: ["backend-dist"]  # -<< pipeline.id >>
+            cd backend
+            npm i
+            #export NODE_ENV=production
+            npm run build
+            cp package* ./dist
+            cd dist
+            tar -czvf ../app.tar.gz ./*
+      # - run:
+      #     name: Deploy backend
+      #     command: |
+      #       tar czf backend.tar.gz -P .circleci/backend/dist
       - run:
           name: Deploy backend
           command: |
-            cd /home
-            tar czf backend.tar.gz -P /home/circleci/project/backend/dist
-      - run:
-          name: Deploy backend 2
-          command: |
             export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook \
-              -i .circleci/ansible/inventory.txt \
-              .circleci/ansible/deploy-backend.yml
+            cd .circleci/ansible
+            ansible-playbook deploy-backend.yml -i inventory.txt
+            
       - run:
           name: Install AWS CLI for rollback
           when: on_fail
