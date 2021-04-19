@@ -376,7 +376,7 @@ jobs:
   deploy-backend:
     docker:
       # Docker image here that supports Ansible
-      - image: willhallonline/ansible:2.10-ubuntu-18.04
+      - image: python:3.7-alpine3.11
     steps:
       # Checkout code from git
       - checkout
@@ -480,8 +480,8 @@ workflows:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [configure-infrastructure]
       - deploy-backend:
