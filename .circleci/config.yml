@@ -472,9 +472,6 @@ jobs:
             yum -y install jq tar gzip git curl
       
       - run:
-          name: Update cloudfront distribution
-          command: |
-            - run:
           name: Get old stack workflow id
           command: |
             # your code here
@@ -486,7 +483,10 @@ jobs:
                 --request PUT --data "${OldWorkflowID}" https://api.memstash.io/values/OldWorkflowID_${CIRCLE_WORKFLOW_ID:0:7}
             
             echo Old Workflow Id: "${OldWorkflowID}"
-
+            
+      - run:
+          name: Update cloudfront distribution
+          command: |
             aws cloudformation deploy \
             --template-file .circleci/files/cloudfront.yml \
             --stack-name "udapeople-cloudfront" \
