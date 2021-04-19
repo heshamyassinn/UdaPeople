@@ -437,13 +437,6 @@ jobs:
           command: |
             yum -y install jq tar gzip git curl
       - run:
-          name: Backend smoke test.
-          command: |
-            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
-            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
-            echo $BACKEND_IP
-            curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
-      - run:
           name: Frontend smoke test.
           command: |
             LOCATION=`aws s3api get-bucket-location --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7} --output text | tr -d '\n'`
@@ -455,6 +448,14 @@ jobs:
             else
             return 0
             fi
+      - run:
+          name: Backend smoke test.
+          command: |
+            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
+            echo $BACKEND_IP
+            curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
+      
       # Here's where you will add some code to rollback on failure  
       # - slack-fail
       # - revert-migrations
