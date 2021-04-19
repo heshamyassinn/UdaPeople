@@ -489,9 +489,9 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file .circleci/files/cloudfront.yml \
+            --tags project=udapeople \
             --stack-name "udapeople-cloudfront" \
-            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7} \
-            --tags project=udapeople &
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
 
       # Here's where you will add some code to rollback on failure  
       - slack-fail
