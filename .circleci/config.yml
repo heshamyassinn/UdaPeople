@@ -441,11 +441,11 @@ jobs:
           command: |
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html"
             echo $URL
-            if curl -s ${URL} | grep "Welcome" \
-            then \
-            return 1 \ 
-            else \ 
-            return 0 \
+            if curl -s ${URL} | grep "Welcome"
+            then
+            return 1
+            else
+            return 0
             fi
       - run:
           name: Backend smoke test.
