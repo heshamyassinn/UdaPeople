@@ -549,7 +549,7 @@ workflows:
                   - master
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
+      # - run-migrations: #
       #     requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [configure-infrastructure]
