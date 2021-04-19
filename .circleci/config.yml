@@ -443,9 +443,9 @@ jobs:
             echo $URL
             if curl -s ${URL} | grep "Welcome"
             then
-            return 1
+              return 1
             else
-            return 0
+              return 1
             fi
       - run:
           name: Backend smoke test.
@@ -456,23 +456,23 @@ jobs:
             curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
       
       # Here's where you will add some code to rollback on failure  
-      # - slack-fail
-      # - revert-migrations
-      # - destroy-environment 
-#   cloudfront-update:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Update cloudfront distribution
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+      - slack-fail
+      - revert-migrations
+      - destroy-environment 
+  # cloudfront-update:
+  #   docker:
+  #     # Docker image here that supports AWS CLI
+  #   steps:
+  #     # Checkout code from git
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           # your code here
+  #     - run:
+  #         name: Update cloudfront distribution
+  #         command: |
+  #           # your code here
+  #     # Here's where you will add some code to rollback on failure  
 
 # cleanup:
 #     docker:
