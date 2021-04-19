@@ -411,10 +411,6 @@ jobs:
             cp package* ./dist
             cd dist
             tar -czvf ../app.tar.gz ./*
-      # - run:
-      #     name: Deploy backend
-      #     command: |
-      #       tar czf backend.tar.gz -P .circleci/backend/dist
       - run:
           name: Deploy backend
           command: |
@@ -422,11 +418,6 @@ jobs:
             cd .circleci/ansible
             ansible-playbook deploy-backend.yml -i inventory.txt
             
-      - run:
-          name: Install AWS CLI for rollback
-          when: on_fail
-          command: |
-            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
       # Here's where you will add some code to rollback on failure  
       - slack-fail
       - revert-migrations
@@ -447,9 +438,10 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
+            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
             echo $BACKEND_IP
-            curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
+            curl -s https://${BACKEND_IP}:3030/api/status
       - run:
           name: Frontend smoke test.
           command: |
@@ -463,9 +455,9 @@ jobs:
             return 0
             fi
       # Here's where you will add some code to rollback on failure  
-      - slack-fail
-      - revert-migrations
-      - destroy-environment 
+      # - slack-fail
+      # - revert-migrations
+      # - destroy-environment 
 #   cloudfront-update:
 #     docker:
 #       # Docker image here that supports AWS CLI
