@@ -394,6 +394,7 @@ jobs:
       - run:
           name: Deploy backend
           command: |
+            export ANSIBLE_HOST_KEY_CHECKING=false
             cd ~/project/.circleci/ansible
             ansible-playbook deploy-backend.yml --inventory-file=inventory.txt
       # Here's where you will add some code to rollback on failure  
