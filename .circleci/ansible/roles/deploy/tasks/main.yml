@@ -1,17 +1,33 @@
-- name: Copy files from backend
-  become: true
-  copy:
-    src: /home/backend.tar.gz
-    dest: /home/ubuntu/backend.tar.gz
+- name: "make directory"
+  become_user: ubuntu
+  shell: mkdir -p ~/udapeople/
 
-- name: Start PM2
+- name: "stop previous execution"
+  become_user: ubuntu
   shell: |
-    cd /home/ubuntu/
-    tar xzvf backend.tar.gz
-    mv home/circleci/project/backend .
-    cd backend
-    sudo npm install -g npm@latest
-    sudo npm install -g webpack-dev-server
-    sudo npm install
-    sudo npm run build
-    sudo pm2 start npm --name backend -- start
+    cd ~/udapeople/    
+    if pm2 monitor main.js | grep "online"; then
+      pm2 stop main.js
+    fi
+
+- name: "remove previous deployment"
+  become: true
+  file: 
+    path: ~/udapeople/ 
+    state: absent
+
+- name: "deploy backend app"
+  become_user: ubuntu
+  unarchive:
+    src: ../../backend/app.tar.gz
+    dest: ~/udapeople/
+    owner: ubuntu
+    group: ubuntu
+    mode: 0755
+
+- name: "run backend app"
+  become_user: ubuntu
+  shell: |
+    cd ~/udapeople/
+    npm i    
+    pm2 start main.js --update-env
