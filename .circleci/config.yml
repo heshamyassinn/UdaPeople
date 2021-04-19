@@ -447,13 +447,13 @@ jobs:
             else
               exit 1
             fi
-      - run:
-          name: Backend smoke test.
-          command: |
-            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
-            --request GET https://api.memstash.io/values/BACKEND_IP_e83d17d`
-            echo $BACKEND_IP
-            curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
+      # - run:
+      #     name: Backend smoke test.
+      #     command: |
+      #       BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+      #       --request GET https://api.memstash.io/values/BACKEND_IP_e83d17d`
+      #       echo $BACKEND_IP
+      #       curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
       
       # Here's where you will add some code to rollback on failure  
       # - slack-fail
