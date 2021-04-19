@@ -443,9 +443,9 @@ jobs:
             echo $URL
             if curl -s ${URL} | grep "Welcome"
             then
-              return 1
+               return 1
             else
-              return 1
+               return 1
             fi
       - run:
           name: Backend smoke test.
@@ -517,10 +517,6 @@ workflows:
           requires: [configure-infrastructure]
       - deploy-backend:
           requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
