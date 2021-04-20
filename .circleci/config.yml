@@ -259,29 +259,32 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "64:bc:59:53:f9:9e:48:31:ae:ef:31:22:b6:90:65:20"
-
-      # attach workspace
-      - attach_workspace:
-          at: ~/
       - run:
           name: Install dependencies
           command: |
             apk add --update ansible
+      
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+
+      - run:
+          name: Avoid hosts unknown
+          command: |
+            echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
       - run:
           name: Configure server
           command: |
-            export ANSIBLE_HOST_KEY_CHECKING=false
-            cd .circleci/ansible
-            cat inventory.txt
-            ansible-playbook configure-server.yml -i inventory.txt
+            cd ~/project/.circleci/ansible
+            ansible-playbook configure-server.yml --inventory-file=inventory.txt
 
       - run:
           name: Install prometheus node exporter
           command: |
-            export ANSIBLE_HOST_KEY_CHECKING=false
-            cd .circleci/ansible
-            cat inventory.txt
-            ansible-playbook configure-prometheus.yml -i inventory.txt
+            cd ~/project/.circleci/ansible
+            ansible-playbook configure-prometheus.yml --inventory-file=inventory.txt
+            
       # Here's where you will add some code to rollback on failure      
       - slack-fail
       - destroy-environment
