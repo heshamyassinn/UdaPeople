@@ -291,46 +291,40 @@ jobs:
 
   run-migrations:
     docker:
-      # Docker image here that supports NodeJS
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       # Checkout code from git
       - checkout
-      - aws-cli/setup
+
       - restore_cache:
           keys: [backend-build]
+
       - run:
-          name: Create .env file
+          name: Install dependencies
           command: |
-            echo ENVIRONMENT=production > "backend/.env"
-            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
-            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
-            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
-            cat backend/.env
+            curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+            yum -y install nodejs npm tar gzip jq git
+
       - run:
           name: Run migrations
           command: |
             cd backend
-            npm run migrations > /temp/migration.log
-            export migration_status=$(cat /temp/migration.log | grep -c "has been executed successfully")
+            npm i
+            npm run migrations > /tmp/migration.log
+
       - run:
           name: Send migration results to memstash
           command: |
-            if [ $migration_status > 0 ] 
+            MIGRATION_COUNT=`grep -c "has been executed successfully" /tmp/migration.log || true`
+            echo "migrations count: ${MIGRATION_COUNT}"
+            if [[ $MIGRATION_COUNT -gt 0 ]];
             then
+              # put it in the shared memory
               curl -H "Content-Type: text/plain" \
-                  -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
-                  --request PUT --data "1" \
-                  https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
-              else
-                  echo "No migration"
+               -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+               --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
+
       # Here's where you will add some code to rollback on failure
       - slack-fail
       - revert-migrations
@@ -366,12 +360,13 @@ jobs:
             --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
             export API_URL="https://${BACKEND_IP}:3030"
             export NODE_ENV=production
-            npm run build
+            npm run build:prod
+
       - run:
           name: Deploy frontend objects
           command: |
             cd frontend
-            cp test.env ./dist/
+            cp .env ./dist/
             # deploy to s3 bucket
             aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - run:
@@ -408,27 +403,31 @@ jobs:
             apt -y install jq tar gzip git curl
             curl -sL https://deb.nodesource.com/setup_12.x | bash -
             apt -y install nodejs
-      # - restore_cache:
-      #     keys: ["backend-build"]
+
       # attach workspace
       - attach_workspace:
           at: ~/
-      # - run:
-      #     name: Build backend
-      #     command: |
-      #       cd backend
-      #       npm i
-      #       export NODE_ENV=production
-      #       npm run build
-      #       cp package* ./dist
-      #       cd dist
-      #       tar -czvf ../app.tar.gz ./*
+      
+      - run:
+          name: Avoid hosts unknown
+          command: |
+            echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Build backend
+          command: |
+            cd backend
+            npm i
+            #export NODE_ENV=production
+            npm run build
+            cp package* ./dist
+            cd dist
+            tar -czvf ../app.tar.gz ./*
       - run:
           name: Deploy backend
           command: |
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            cd .circleci/ansible
-            ansible-playbook deploy-backend.yml -i inventory.txt
+            cd ~/project/.circleci/ansible
+            ansible-playbook deploy-backend.yml --inventory-file=inventory.txt
             
       # Here's where you will add some code to rollback on failure  
       - slack-fail
@@ -459,13 +458,13 @@ jobs:
             else
               exit 1
             fi
-      # - run:
-      #     name: Backend smoke test.
-      #     command: |
-      #       BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
-      #       --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
-      #       echo $BACKEND_IP
-      #       curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
+      - run:
+          name: Backend smoke test.
+          command: |
+            BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
+            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
+            echo $BACKEND_IP
+            curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
       
       # Here's where you will add some code to rollback on failure  
       - slack-fail
@@ -559,12 +558,12 @@ workflows:
                   - master
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations: 
-      #     requires: [configure-infrastructure]
+      - run-migrations: 
+          requires: [configure-infrastructure]
       - deploy-frontend:
-          requires: [configure-infrastructure]
+          requires: [run-migrations]
       - deploy-backend:
-          requires: [configure-infrastructure]
+          requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
