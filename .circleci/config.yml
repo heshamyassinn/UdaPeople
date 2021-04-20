@@ -456,9 +456,9 @@ jobs:
       #       curl -s https://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\""
       
       # Here's where you will add some code to rollback on failure  
-      - slack-fail
-      - revert-migrations
-      - destroy-environment 
+      # - slack-fail
+      # - revert-migrations
+      # - destroy-environment 
   cloudfront-update:
     docker:
       # Docker image here that supports AWS CLI
