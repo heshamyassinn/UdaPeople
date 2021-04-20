@@ -259,30 +259,21 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "64:bc:59:53:f9:9e:48:31:ae:ef:31:22:b6:90:65:20"
+
+      # attach workspace
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
             apk add --update ansible
-      
-      # attach workspace
-      - attach_workspace:
-          at: ~/
-          
       - run:
           name: Configure server
           command: |
             export ANSIBLE_HOST_KEY_CHECKING=false
             cd .circleci/ansible
-            cat inventory.txt
             ansible-playbook configure-server.yml -i inventory.txt
-
-      - run:
-          name: Install prometheus node exporter
-          command: |
-            export ANSIBLE_HOST_KEY_CHECKING=false
-            cd .circleci/ansible
-            cat inventory.txt
-            ansible-playbook configure-prometheus.yml -i inventory.txt
+    
       # Here's where you will add some code to rollback on failure      
       - slack-fail
       - destroy-environment
@@ -411,16 +402,16 @@ jobs:
       # attach workspace
       - attach_workspace:
           at: ~/
-      # - run:
-      #     name: Build backend
-      #     command: |
-      #       cd backend
-      #       npm i
-      #       export NODE_ENV=production
-      #       npm run build
-      #       cp package* ./dist
-      #       cd dist
-      #       tar -czvf ../app.tar.gz ./*
+      - run:
+          name: Build backend
+          command: |
+            cd backend
+            npm i
+            #export NODE_ENV=production
+            npm run build
+            cp package* ./dist
+            cd dist
+            tar -czvf ../app.tar.gz ./*
       - run:
           name: Deploy backend
           command: |
@@ -448,8 +439,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            LOCATION=`aws s3api get-bucket-location --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7} --output text | tr -d '\n'`
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-${LOCATION}.amazonaws.com/index.html"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html"
             echo $URL
             if curl -s ${URL} | grep "Welcome";
             then
@@ -530,8 +520,8 @@ jobs:
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then        
               aws s3 rm s3://udapeople-${OldWorkflowID} --recursive
-              aws cloudformation delete-stack --stack-name udapeople-backend-${OldWorkflowID}
-              aws cloudformation delete-stack --stack-name udapeople-frontend-${OldWorkflowID}
+              aws cloudformation delete-stack --stack-name udapeople-ba-${OldWorkflowID}
+              aws cloudformation delete-stack --stack-name frontend-${OldWorkflowID}
             fi
             
       - slack-fail
@@ -557,7 +547,7 @@ workflows:
                   - master
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations: 
+      # - run-migrations: #
       #     requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [configure-infrastructure]
@@ -567,5 +557,5 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
-      - cleanup:
+      - cleanup
           requires: [cloudfront-update]
