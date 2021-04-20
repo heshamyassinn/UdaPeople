@@ -444,7 +444,8 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html"
+            LOCATION=`aws s3api get-bucket-location --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7} --output text | tr -d '\n'`
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-${LOCATION}.amazonaws.com/index.html"
             echo $URL
             if curl -s ${URL} | grep "Welcome";
             then
