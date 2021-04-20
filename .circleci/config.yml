@@ -410,16 +410,16 @@ jobs:
       # attach workspace
       - attach_workspace:
           at: ~/
-      - run:
-          name: Build backend
-          command: |
-            cd backend
-            npm i
-            #export NODE_ENV=production
-            npm run build
-            cp package* ./dist
-            cd dist
-            tar -czvf ../app.tar.gz ./*
+      # - run:
+      #     name: Build backend
+      #     command: |
+      #       cd backend
+      #       npm i
+      #       export NODE_ENV=production
+      #       npm run build
+      #       cp package* ./dist
+      #       cd dist
+      #       tar -czvf ../app.tar.gz ./*
       - run:
           name: Deploy backend
           command: |
@@ -487,7 +487,7 @@ jobs:
             --template-file .circleci/files/cloudfront.yml \
             --tags project=udapeople \
             --stack-name "udapeople-cloudfront" \
-            --parameter-overrides WorkflowID="kk1huch7dhjppmz437"
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
 
       # Here's where you will add some code to rollback on failure  
       - slack-fail
