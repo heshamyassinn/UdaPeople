@@ -454,7 +454,7 @@ jobs:
             else
               exit 1
             fi
-      # - run:
+      - run:
           name: Backend smoke test.
           command: |
             BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
