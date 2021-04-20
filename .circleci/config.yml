@@ -313,8 +313,9 @@ jobs:
           command: |
             cd backend
             sudo npm install
-            sudo npm run migrations > /temp/migration.log
-            export migration_status=$(cat /temp/migration.log | grep -c "has been executed successfully")
+            sudo touch migration.log
+            sudo npm run migrations >> migration.log
+            export migration_status=$(cat migration.log | grep -c "has been executed successfully")
       - run:
           name: Send migration results to memstash
           command: |
