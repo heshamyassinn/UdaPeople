@@ -45,7 +45,7 @@
   become: true
   user:
     name: udapeople
-    password: {{ upassword | password_hash('sha512') }}
+    password: "{{ upassword | password_hash('sha512') }}"
     groups:
       - root
     state: present
