@@ -367,7 +367,7 @@ jobs:
           name: Create S3 bucket url
           command: |
             LOCATION=`aws s3api get-bucket-location --bucket udapeople-${CIRCLE_WORKFLOW_ID:0:7} --output text | tr -d '\n'`
-            S3_URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html"
+            S3_URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-${LOCATION}.amazonaws.com/index.html"
             echo $S3_URL
 
             curl -H "Content-Type: text/plain" \
