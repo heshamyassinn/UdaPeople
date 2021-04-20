@@ -312,10 +312,8 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            sudo npm install
-            sudo touch migration.log
-            sudo npm run migrations >> migration.log
-            export migration_status=$(cat migration.log | grep -c "has been executed successfully")
+            npm run migrations > /temp/migration.log
+            export migration_status=$(cat /temp/migration.log | grep -c "has been executed successfully")
       - run:
           name: Send migration results to memstash
           command: |
@@ -456,7 +454,7 @@ jobs:
             else
               exit 1
             fi
-      - run:
+      # - run:
           name: Backend smoke test.
           command: |
             BACKEND_IP=`curl -H "token: 93c94f94-9308-477b-a12b-d9757b98cba5" \
@@ -556,12 +554,12 @@ workflows:
                   - master
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations: 
-          requires: [configure-infrastructure]
+      # - run-migrations: 
+      #     requires: [configure-infrastructure]
       - deploy-frontend:
-          requires: [run-migrations]
+          requires: [configure-infrastructure]
       - deploy-backend:
-          requires: [run-migrations]
+          requires: [configure-infrastructure]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
