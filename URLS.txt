@@ -1,4 +1,11 @@
-[URL01] https://github.com/heshamyassinn/UdaPeople
-[URL02] http://udapeople-7e38cc8.s3-website-us-east-1.amazonaws.com
-[URL03]
+[URL02] http://udapeople-9e831c8.s3.amazonaws.com/index.html
+[URL03] 
 [URL04]
+
+
+1. Public Url to GitHub repository (not private) [URL01]
+[URL01] https://github.com/heshamyassinn/UdaPeople
+1. Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02]
+1. Public URL for your CloudFront distribution (aka, your blue production front-end) [URL03]
+1. Public URLs to deployed application back-end in EC2 [URL04]
+1. Public URL to your Prometheus Server [URL05]
