@@ -273,7 +273,12 @@ jobs:
             export ANSIBLE_HOST_KEY_CHECKING=false
             cd .circleci/ansible
             ansible-playbook configure-server.yml -i inventory.txt
-    
+
+      - run:
+          name: Install prometheus node exporter
+          command: |
+            cd .circleci/ansible
+            ansible-playbook configure-prometheus.yml -i inventory.txt
       # Here's where you will add some code to rollback on failure      
       - slack-fail
       - destroy-environment
