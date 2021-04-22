@@ -111,9 +111,9 @@ jobs:
       - run:
           name: Run frontend tests
           command: |
-            cd frontend
-            npm install
-            npm run test
+             cd frontend
+             npm install
+             npm run test
       - slack-fail
             
   test-backend:
@@ -128,15 +128,15 @@ jobs:
       - run:
           name: Install prerequsites
           command: |            
-            sudo apt -y install jq tar gzip git curl
+             sudo apt -y install jq tar gzip git curl
       - restore_cache:
           keys: ["backend-build"]
       - run:
           name: Run backend tests
           command: |
-            cd backend
-	          npm install
-            npm run test
+             cd backend
+             npm install
+             npm run test
       - slack-fail
 
   scan-frontend:
