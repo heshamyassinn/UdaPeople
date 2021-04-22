@@ -296,6 +296,7 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             cat backend/.env
             ansible-galaxy install weareinteractive.environment
+            export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook .circleci/ansible/configure-server.yml -i /tmp/.circleci/ansible/inventory.txt 
             ansible-playbook .circleci/ansible/configure-prometheus.yml -i /tmp/.circleci/ansible/inventory.txt 
             
