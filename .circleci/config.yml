@@ -158,7 +158,7 @@ jobs:
           name: Scan frontend dependencies
           command: |
             cd frontend
-	    npm install
+	          npm install
             npm audit fix --audit-level=critical --force
       - slack-fail
 
