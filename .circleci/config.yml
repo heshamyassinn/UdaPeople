@@ -431,7 +431,7 @@ jobs:
           name: Backend smoke test.
           command: |
             BACKEND_URL=`curl -H "token: 5dbfef3e-3626-4067-98d9-dbdb17c5dfa7" \
-            --request GET https://api.memstash.io/values/BACKEND_IP_da1cb0a`
+            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
             echo $BACKEND_URL
             API_URL="http://$BACKEND_URL:3030/api/status"
             echo "API_URL: " $API_URL
@@ -439,7 +439,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-da1cb0a.s3-website.us-east-2.amazonaws.com"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.us-east-2.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
               exit 0
@@ -546,34 +546,33 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [test-backend]
-      # - scan-frontend:
-      #     requires: [test-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     filters:
-      #         branches:
-      #           only:
-      #             - master
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations: 
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
-      - smoke-test
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [test-backend]
+      - scan-frontend:
+          requires: [test-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+              branches:
+                only:
+                  - master
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations: 
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
