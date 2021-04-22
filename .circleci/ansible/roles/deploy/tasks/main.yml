@@ -1,33 +1,43 @@
-- name: "make directory"
-  become_user: ubuntu
-  shell: mkdir -p ~/udapeople/
-
-- name: "stop previous execution"
-  become_user: ubuntu
-  shell: |
-    cd ~/udapeople/    
-    if pm2 monitor main.js | grep "online"; then
-      pm2 stop main.js
-    fi
-
-- name: "remove previous deployment"
+- name: "upgrade packages."
   become: true
-  file: 
-    path: ~/udapeople/ 
-    state: absent
+  apt:
+    upgrade: "yes"
 
-- name: "deploy backend app"
-  become_user: ubuntu
+- name: "install dependencies."
+  become: true
+  apt:
+    name: ["nodejs", "npm", "tar"]
+    update_cache: yes
+    
+- name: "install pm2"
+  become: true
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+
+- name: "Create directory"
+  become: true
+  file:
+    path: ~/udapeople/
+    state: directory
+
+- name: "extract  backend"
+  become: true
   unarchive:
-    src: ../../backend/app.tar.gz
+    src: /etc/backend.tar.gz
     dest: ~/udapeople/
-    owner: ubuntu
-    group: ubuntu
-    mode: 0755
 
-- name: "run backend app"
-  become_user: ubuntu
-  shell: |
-    cd ~/udapeople/
-    npm i    
-    pm2 start main.js --update-env
+- name: "install npm to  backend" 
+  become: true
+  command: npm install
+  args:
+    chdir: ~/udapeople/
+   
+
+- name: "run  backend"
+  become: true
+  command: pm2 start npm -- run start
+  args:
+    chdir: ~/udapeople/
