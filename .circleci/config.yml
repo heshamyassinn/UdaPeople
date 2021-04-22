@@ -16,12 +16,13 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive 
-            aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force 
-            aws cloudformation delete-stack \
-                --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-            aws cloudformation delete-stack \
-                --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+            # aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive 
+            # aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force 
+            # aws cloudformation delete-stack \
+            #     --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+            # aws cloudformation delete-stack \
+            #     --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+            exit 1
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -33,14 +34,15 @@ commands:
           # Add when this will run
           when: on_fail
           command: |
-            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl -H "token: 5dbfef3e-3626-4067-98d9-dbdb17c5dfa7" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
-            if(( $SUCCESS==1 )); 
-            then
-              cd ~/project/backend
-              npm install
-              npm run migrations:revert
-            fi
+            # # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            # SUCCESS=$(curl -H "token: 5dbfef3e-3626-4067-98d9-dbdb17c5dfa7" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            # if(( $SUCCESS==1 )); 
+            # then
+            #   cd ~/project/backend
+            #   npm install
+            #   npm run migrations:revert
+            # fi
+            exit 1
   
   slack-fail:
     description: Send notification to Slack
@@ -427,9 +429,9 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_URL=`curl -H "token: 5dbfef3e-3626-4067-98d9-dbdb17c5dfa7" \
+            export BACKEND_URL=`curl -H "token: 5dbfef3e-3626-4067-98d9-dbdb17c5dfa7" \
             --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
-
+            echo $BACKEND_URL
             API_URL="http://$BACKEND_IP:3030/api/status"
             echo $API_URL
             curl $API_URL
