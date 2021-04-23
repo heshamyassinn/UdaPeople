@@ -35,7 +35,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl -H "token: 999e9624-ebd4-4b3c-95cf-da03d760a48e" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            SUCCESS=$(curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -229,7 +229,7 @@ jobs:
             cat .circleci/ansible/inventory.txt
             #save the new back-end url to memory
             curl -H "Content-Type: text/plain" \
-              -H "token: 999e9624-ebd4-4b3c-95cf-da03d760a48e" --request PUT \
+              -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" --request PUT \
               --data "$BACKEND_IP" https://api.memstash.io/values/BACKEND_IP
 
 
@@ -280,8 +280,8 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             cat backend/.env
-            echo $(curl -H "token: 21655ba8-a199-4ae9-8b32-0cf4daa7e3a3" \
-             --request GET https://api.memstash.io/values/backend_ip) >>  ~/project/.circleci/ansible/inventory.txt
+            echo $(curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" \
+             --request GET https://api.memstash.io/values/BACKEND_IP) >>  ~/project/.circleci/ansible/inventory.txt
             cd .circleci/ansible
             echo $PWD
             ansible-playbook -i inventory.txt configure-server.yml 
@@ -319,7 +319,7 @@ jobs:
           command: |
             cd backend
             npm install
-	    npm run build
+            npm run build
             npm run migrations > migration_result.txt
             cat migration_result.txt
       - run:
@@ -328,11 +328,11 @@ jobs:
             cd backend
             if grep "executed successfully" migration_result.txt
             then
-            curl -H "Content-Type: text/plain" -H "token: 999e9624-ebd4-4b3c-95cf-da03d760a48e" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             else
-            curl -H "Content-Type: text/plain" -H "token: 999e9624-ebd4-4b3c-95cf-da03d760a48e" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
-            SUCCESS=$(curl -H "token: 999e9624-ebd4-4b3c-95cf-da03d760a48e" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
             echo "${SUCCESS}"
       # Here's where you will add some code to rollback on failure
       #- slack-fail
@@ -356,10 +356,10 @@ jobs:
           name: Get backend url
           command: |
             # your code here
-            BACKEND_URL=`curl -H "token: 999e9624-ebd4-4b3c-95cf-da03d760a48e" \
+            BACKEND_URL=`curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" \
             --request GET https://api.memstash.io/values/BACKEND_IP`
             export API_URL="http://${BACKEND_URL}:3030"
-	    echo API_URL="http://${BACKEND_URL}:3030" > "frontend/.env"
+            echo API_URL="http://${BACKEND_URL}:3030" > "frontend/.env"
             echo "${API_URL}"
             
       - run:
@@ -420,7 +420,7 @@ jobs:
           command: |
             export ANSIBLE_HOST_KEY_CHECKING=False
 	    cd ~/project/.circleci/ansible
-	    echo $(curl -H "token: 21655ba8-a199-4ae9-8b32-0cf4daa7e3a3" \
+	    echo $(curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" \
              --request GET https://api.memstash.io/values/backend_ip) >> ~/project/.circleci/ansible/inventory.txt
 	     ansible-playbook -i inventory.txt deploy-backend.yml 
             
