@@ -451,7 +451,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
             URL="http://${BACKEND_IP}:3030/api/status"
-	    curl $API_URL
+            curl $API_URL
       - run:
           name: Frontend smoke test.
           command: |
