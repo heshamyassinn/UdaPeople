@@ -489,7 +489,7 @@ jobs:
       
       - run:
           name: Wait for the cf stack to complete
-          command : sleep 300
+          command : sleep 50
 
       # Here's where you will add some code to rollback on failure  
       - slack-fail
