@@ -279,7 +279,8 @@ jobs:
       - run:
           name: Configure server
           command: |
-            echo ENVIROMENT=production > "backend/.env"
+            echo NODE_ENV=production > "backend/.env"
+            echo ENVIROMENT=production >> "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
@@ -311,7 +312,7 @@ jobs:
           name: Run migrations
           no_output_timeout: 30m
           command: |
-            cd backend
+            cd backend  
             npm install
             npm run migrations > migrations.txt
             cat migrations.txt
