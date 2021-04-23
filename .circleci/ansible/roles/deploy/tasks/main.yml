@@ -1,42 +1,80 @@
+
 ---
+- name: "update apt packages."
+  become: yes
+  apt:
+    update_cache: yes
+    
+- name: "upgrade packages"
+  become: yes
+  apt:
+    upgrade: yes
+    
 - name: "install dependencies."
-  become: true
+  become: yes
   apt:
     name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
-
+    
 - name: "install pm2"
-  become: true
+  become: yes
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
-
-- name: Creates directory
-  file:
-    path: /home/ubuntu/backend
-    state: directory
-
-- name: Copy backend dist files web server
-  copy:
-    src: /root/project/artifact.tar.gz
-    dest: /home/ubuntu/backend/artifact.tar.gz
-
-- name: Uncompress Backend
+    
+- name: "install typescript"
+  become: yes
+  npm:
+    name: typescript
+    global: yes
+    production: yes
+    state: present
+    
+- name: " update dependancies"
+  become: true
   shell: |
-    cd /home/ubuntu/backend
-    tar xvzf artifact.tar.gz -C .
-    ls -la
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    apt-get install -y nodejs  
+    npm install --save glob
+    
+- name: "Copy backend build to server"
+  become: yes
+  unarchive:
+    src:  ~/project/backend.tar.gz
+    dest: /home/ubuntu/
+    owner: ubuntu
+
+- name: "Copy package.json to server"
+  become: yes
+  copy:
+    src: ~/project/backend/package.json
+    dest: /home/ubuntu/
+    owner: ubuntu
     
 - name: Build
   become: true
   shell: |
     cd /home/ubuntu/backend
     npm install
+    npm fund
     npm run build
-- name: Start PM2
+   
+- name: "export .env"
+  become: yes
   shell: |
-    cd /home/ubuntu/backend 
-    pm2 start npm --name backend -- start
+    export TYPEORM_HOST="{{ lookup('env', 'TYPEORM_HOST') }}"
+    export TYPEORM_ENTITIES="{{ lookup('env', 'TYPEORM_ENTITIES') }}"
+    export TYPEORM_USERNAME="{{ lookup('env', 'TYPEORM_USERNAME') }}"
+    export TYPEORM_PASSWORD="{{ lookup('env', 'TYPEORM_PASSWORD') }}"
+    export TYPEORM_DATABASE="{{ lookup('env', 'TYPEORM_DATABASE') }}"
+
+- name: Executing node
+  become: true
+  shell: |
+    cd /home/ubuntu/backend
+    pm2 start --name backend npm -- start
+    npm run start:prod
+    pm2 ls
