@@ -394,7 +394,7 @@ jobs:
           command: |
             apk add --update ansible
             apk add --update tar gzip curl nodejs npm
-	    apk add openssh-client
+            apk add openssh-client
             pip install awscli
             
       - run:
@@ -419,10 +419,10 @@ jobs:
           name: Deploy backend
           command: |
             export ANSIBLE_HOST_KEY_CHECKING=False
-	    cd ~/project/.circleci/ansible
-	    echo $(curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" \
+            cd ~/project/.circleci/ansible
+            echo $(curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" \
              --request GET https://api.memstash.io/values/backend_ip) >> ~/project/.circleci/ansible/inventory.txt
-	     ansible-playbook -i inventory.txt deploy-backend.yml 
+            ansible-playbook -i inventory.txt deploy-backend.yml 
             
       # Here's where you will add some code to rollback on failure  
       - slack-fail
