@@ -95,6 +95,18 @@ jobs:
              cd backend
              npm install
              npm run build
+      - run:
+          name: Copy compiled backend 
+          command: |
+            mkdir /tmp/workspace
+            cp -v ./backend/package.json /tmp/workspace/
+            ls /tmp/workspace/
+            echo $PWD
+            cd backend/dist
+            tar -zcvf /tmp/workspace/backend.tar.gz ./
+            echo $PWD
+            ls ./
+            ls /tmp/workspace/
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -121,6 +133,9 @@ jobs:
              cd frontend
              npm install
              npm run test
+      - save_cache:
+            paths: [frontend/node_modules]
+            key: frontend-test
       - slack-fail
             
   test-backend:
