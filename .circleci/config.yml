@@ -438,17 +438,17 @@ jobs:
             ls -ahl
       - run:
           name: Deploy backend
+          no_output_timeout: 30m
           command: |
-            export ANSIBLE_HOST_KEY_CHECKING=False
             cd ~/project/.circleci/ansible
             echo $(curl -H "token: 2299e18f-2bea-46dc-a650-7dee1a28a5c5" \
              --request GET https://api.memstash.io/values/backend_ip) >> ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml 
             
       # Here's where you will add some code to rollback on failure  
-      - slack-fail
-      - revert-migrations
-      - destroy-environment 
+      # - slack-fail
+      # - revert-migrations
+      # - destroy-environment 
 
   smoke-test:
     docker:
