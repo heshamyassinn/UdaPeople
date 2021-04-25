@@ -142,6 +142,7 @@ jobs:
           name: Run back end tests
           command: |
             cd backend
+            npm install
             npm run test
   scan-frontend:
     docker:
@@ -154,6 +155,7 @@ jobs:
           name: Run front end audit
           command: |
             cd frontend
+            npm install
             npm audit fix --audit-level=critical --force
       - slack-fail
   scan-backend:
@@ -167,6 +169,7 @@ jobs:
             name: Run back end audit
             command: |
               cd backend
+              npm install
               npm audit fix --audit-level=critical --force
         - slack-fail
   deploy-infrastructure:
