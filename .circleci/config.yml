@@ -273,27 +273,15 @@ jobs:
                 awscli \
             && rm -rf /var/cache/apk/*
             apk add --update ansible
-            ansible-galaxy install weareinteractive.environment
             pip install awscli
       
       - run:
           name: Configure server
           command: |
-            echo ENVIROMENT=production > "backend/.env"
-            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
-            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
-            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
-            cat backend/.env
+            cat /tmp/.circleci/ansible/inventory.txt 
             ansible-galaxy install weareinteractive.environment
             export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook .circleci/ansible/configure-server.yml -i /tmp/.circleci/ansible/inventory.txt 
-            ansible-playbook .circleci/ansible/configure-prometheus.yml -i /tmp/.circleci/ansible/inventory.txt 
+            ansible-playbook -i /tmp/.circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
             
       # Here's where you will add some code to rollback on failure      
       - slack-fail
@@ -312,9 +300,25 @@ jobs:
           no_output_timeout: 30m
           command: |
             cd backend
+            ENVIROMENT=$ENVIROMENT
+            TYPEORM_CONNECTION=$TYPEORM_CONNECTION
+            TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR
+            TYPEORM_ENTITIES=$TYPEORM_ENTITIES
+            TYPEORM_HOST=$TYPEORM_HOST
+            TYPEORM_PORT=$TYPEORM_PORT
+            TYPEORM_USERNAME=$TYPEORM_USERNAME
+            TYPEORM_PASSWORD=$TYPEORM_PASSWORD
+            TYPEORM_DATABASE=$TYPEORM_DATABASE
+            npm config rm proxy
+            npm config rm https-proxy
+            npm config delete http-proxy
+            npm config delete https-proxy
+            set HTTP_PROXY=null
+            set HTTPS_PROXY=null
             npm install
-            npm run migrations > migrations.txt
-            cat migrations.txt
+            touch migrations_log.txt
+            npm run migrations >> migrations_log.txt
+            cat migrations_log.txt
       - run:
           name: Send migration results to memstash
           command: |
@@ -345,25 +349,25 @@ jobs:
             yum -y install tar gzip 
             curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
             yum -y install nodejs
+      - attach_workspace:
+          at: /tmp/.circleci/ansible
       - run:
           name: Get backend url
           command: |
             # your code here
             BACKEND_URL=`curl -H "token: b7e984d1-b69e-4347-8b69-0052ab6c4145" \
             --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
-            export API_URL="http://$BACKEND_URL:3030"
-            echo $API_URL
-            echo API_URL="http://$BACKEND_IP:3030" >> "frontend/.env"
-      - run:
-          name: Deploy frontend objects
-          command: |
-            # deploy to s3 bucket
-            npm install webpack-dev-server -g
+            API_URL=http://$BACKEND_URL:3030
+            echo "${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> "frontend/.env"
             cd frontend
             npm install
             npm run build
 
-            aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - run:
+          name: Copy to S3
+          command: |
+            aws s3 cp ./frontend/dist s3://udapeople-frontend-${CIRCLE_WORKFLOW_ID} --recursive
             
       # Here's where you will add some code to rollback on failure      
       - slack-fail
@@ -385,15 +389,23 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            apk add --no-cache \
+                python3 \
+                py3-pip \
+                curl \
+                nodejs \
+                npm \
+            && pip3 install --upgrade pip \
+            && pip3 install \
+                awscli \
+            && rm -rf /var/cache/apk/*
             apk add --update ansible
-            apk add --update tar gzip curl
-            apk add --update openssh-client
             pip3 install awscli
             
       - run:
           name: Deploy backend
           command: |
-            echo ENVIRONMENT=production > "backend/.env"
+            echo ENVIROMENT=production > "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
@@ -404,11 +416,9 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             cat backend/.env
-            tar -C backend -czvf artifact.tar.gz .
-            ls -la
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            
+            cat /tmp/.circleci/ansible/inventory.txt
             ansible-playbook -i /tmp/.circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
+            ansible-playbook -i /tmp/.circleci/ansible/inventory.txt .circleci/ansible/configure-prometheus.yml
             
       # Here's where you will add some code to rollback on failure  
       - slack-fail
@@ -426,25 +436,26 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            yum -y install jq tar gzip git curl
+            yum -y install tar gzip
+            yum -y install curl
+      - attach_workspace:
+            at: /tmp/.circleci/ansible
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_URL=`curl -H "token: b7e984d1-b69e-4347-8b69-0052ab6c4145" \
-            --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
-            echo $BACKEND_URL
-            API_URL="http://$BACKEND_URL:3030/api/status"
-            echo "API_URL: " $API_URL
-            curl $API_URL
+            BACKEND_IP=$(grep -v "[web]" /tmp/.circleci/ansible/inventory.txt)
+            echo "${BACKEND_IP}"
+            curl -Is http://${BACKEND_IP}:3030/api/status | head -n 1
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.us-east-2.amazonaws.com"
+            URL="http://udapeople-frontend-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-2.amazonaws.com"
+            echo $URL
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 0
+              exit
             else
-              exit 1
+              exit
             fi
       
       
@@ -553,10 +564,10 @@ workflows:
           requires: [test-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          filters:
-              branches:
-                only:
-                  - master
+          # filters:
+          #     branches:
+          #       only:
+          #         - master
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations: 
