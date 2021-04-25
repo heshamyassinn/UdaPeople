@@ -102,15 +102,9 @@ jobs:
           name: clean sha
           command: |
             cd backend
-            pwd
-            #ls -la /home/circleci/project/backend/node_modules
             rm -rf /home/circleci/project/frontend/node_modules
-            #npm i
             rm package-lock.json
-            #npm cache clear --force
-            #npm cache verify
             npm cache clean --force
-            #npm i   
       - run:
           name: Build backend
           command: |
@@ -160,7 +154,6 @@ jobs:
           name: Run front end audit
           command: |
             cd frontend
-            #npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
       - slack-fail
   scan-backend:
@@ -175,7 +168,6 @@ jobs:
             command: |
               cd backend
               npm audit fix --audit-level=critical --force
-              #npm audit --audit-level=critical
         - slack-fail
   deploy-infrastructure:
     docker:
@@ -191,7 +183,7 @@ jobs:
       - run:
           name: store URL
           command: |
-              BACKEND_IP=$(aws ec2 describe-instances --region us-west-2 --query "Reservations[*].Instances[*].PublicIpAddress" --filters "Name=tag:Name,Values=backend-*" --output text)
+              BACKEND_IP=$(aws ec2 describe-instances --region us-east-2 --query "Reservations[*].Instances[*].PublicIpAddress" --filters "Name=tag:Name,Values=backend-*" --output text)
               echo "BACKEND_IP=$BACKEND_IP"
               echo ${CIRCLE_WORKFLOW_ID}
               curl -H "Content-Type: text/plain" -H "token: 881c2b52-dd10-4b58-9fb5-e7851c37a46e" --request PUT --data "$BACKEND_IP" https://api.memstash.io/values/url_${CIRCLE_WORKFLOW_ID}
@@ -206,7 +198,7 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            rm .circleci/ansible/inventory.txt # clears the inventory file to have only the existing instances
+            rm .circleci/ansible/inventory.txt
             echo "[web]" > .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
@@ -226,7 +218,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["08:ef:be:f8:68:84:01:c7:e0:ec:b9:54:79:1c:a9:6c"]
+          fingerprints: ["bc:9d:fb:17:2f:10:83:6c:b7:f7:39:a5:b5:e6:c2:36"]
       - attach_workspace:
           at: /tmp/.circleci/ansible
       - run:
@@ -303,8 +295,6 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            #BACKEND_IP=$(aws ec2 describe-instances --region us-west-2 --query "Reservations[*].Instances[*].PublicIpAddress" --filters "Name=tag:Name,Values=backend-*" --output text)
-            #echo ${BACKEND_IP}  
             export BACKEND_IP=$(curl -H "token: 881c2b52-dd10-4b58-9fb5-e7851c37a46e" --request GET https://api.memstash.io/values/url_${CIRCLE_WORKFLOW_ID})
             API_URL=http://${BACKEND_IP}:3030
             echo = "${API_URL}"
@@ -326,7 +316,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["08:ef:be:f8:68:84:01:c7:e0:ec:b9:54:79:1c:a9:6c"]
+          fingerprints: ["bc:9d:fb:17:2f:10:83:6c:b7:f7:39:a5:b5:e6:c2:36"]
       - attach_workspace:
           at: /tmp/.circleci/ansible
       - run:
@@ -387,7 +377,7 @@ jobs:
         - run:
             name: Frontend smoke test.
             command: |     
-              URL="http://udapeople-frontend-${CIRCLE_WORKFLOW_ID}.s3-website-us-west-2.amazonaws.com"
+              URL="http://udapeople-frontend-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-2.amazonaws.com"
               echo $URL
               if curl -s ${URL} | grep "Welcome"
                 then
