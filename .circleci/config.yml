@@ -250,7 +250,6 @@ jobs:
     docker:
       # Docker image here that supports Ansible
       - image: python:3.7-alpine3.11
-    # Environment suggestion here: https://knowledge.udacity.com/questions/484346
     environment:
       TYPEORM_CONNECTION: $TYPEORM_CONNECTION
       TYPEORM_HOST: $TYPEORM_HOST
@@ -315,7 +314,6 @@ jobs:
               https://api.memstash.io/values/migration
             fi
             #exit 1
-            # Rollback revert migrations - https://knowledge.udacity.com/questions/502810
       # - run:
       #     name: Send migration results to memstash
       #     command: |
@@ -360,9 +358,9 @@ jobs:
             echo "S3 BUCKET URL: ${URL02}"
             aws s3 sync ~/project/frontend/dist s3://udapeople-${CIRCLE_WORKFLOW_ID}/
       # Here's where you will add some code to rollback on failure    
-      - destroy-environment 
-      - empty-bucket
+      - slack-fail
       - revert-migrations
+      - destroy-environment
                     
   deploy-backend:
     docker:
@@ -377,10 +375,6 @@ jobs:
             - "bc:9d:fb:17:2f:10:83:6c:b7:f7:39:a5:b5:e6:c2:36"
       - attach_workspace:
           at: ~/
-      # - restore_cache:
-      #     keys:
-      #       - << pipeline.id >>-backend-build
-      #       - << pipeline.id >>-deploy-infra
       - run:
           name: Install dependencies
           command: |
@@ -468,12 +462,6 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
-            # your code here
-            # aws cloudformation deploy \
-            #   --template-file .circleci/files/cloudfront.yml \
-            #   --tags project=project4-cloudfront \
-            #   --stack-name udapeople-cloudfront \
-            #   --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID} &
             aws cloudformation update-stack \
             --use-previous-template \
             --stack-name udapeople-cloudfront \
