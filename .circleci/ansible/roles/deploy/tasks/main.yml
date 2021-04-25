@@ -6,9 +6,6 @@
    dest: ~/
    remote_src: no
 
-# - name: Rename ~/dist -> ~/backend
-#   command: mv ~/dist ~/backend
-
 # Start PM2 taken from https://knowledge.udacity.com/questions/394294
 - name: Start PM2
   shell: |
