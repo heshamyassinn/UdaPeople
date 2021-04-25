@@ -1,42 +1,16 @@
 ---
-- name: "install dependencies."
-  become: true
-  apt:
-    name: ["nodejs", "npm"]
-    state: latest
-    update_cache: yes
+- name: Unpack backend
+  ansible.builtin.unarchive:
+   #src: ~/project/backend/dist.tgz
+   src: ~/project/backend.tgz
+   dest: ~/
+   remote_src: no
 
-- name: "install pm2"
-  become: true
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
+# - name: Rename ~/dist -> ~/backend
+#   command: mv ~/dist ~/backend
 
-- name: Creates directory
-  file:
-    path: /home/ubuntu/backend
-    state: directory
-
-- name: Copy backend dist files web server
-  copy:
-    src: /root/project/artifact.tar.gz
-    dest: /home/ubuntu/backend/artifact.tar.gz
-
-- name: Uncompress Backend
-  shell: |
-    cd /home/ubuntu/backend
-    tar xvzf artifact.tar.gz -C .
-    ls -la
-    
-- name: Build
-  become: true
-  shell: |
-    cd /home/ubuntu/backend
-    npm install
-    npm run build
+# Start PM2 taken from https://knowledge.udacity.com/questions/394294
 - name: Start PM2
   shell: |
-    cd /home/ubuntu/backend 
+    cd ~/backend
     pm2 start npm --name backend -- start
