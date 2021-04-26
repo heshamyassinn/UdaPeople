@@ -1,4 +1,12 @@
 ---
+- name: "Remove any node npm that might already be installed."
+  debugger: on_failed
+  become: yes
+  apt:
+    name: ["nodejs", "npm"]
+    state: absent
+    purge: yes
+
 - name: "update apt packages."
   become: yes
   apt:
@@ -19,6 +27,26 @@
   shell: |
     curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
     sudo apt-get install -y nodejs
+
+
+- name: "Add nodejs 13.x ppa for apt repo"
+  become: yes
+  apt_repository:
+    repo: deb https://deb.nodesource.com/node_13.x focal main
+    update_cache: yes
+
+
+- name: "install dependencies."
+  become: yes
+  apt:
+    name:
+      - nodejs=13.14.0-deb-1nodesource1
+      - npm
+    state: present
+    update_cache: yes
+    install_recommends: yes
+
+
 
 - name: "install pm2"
   become: yes

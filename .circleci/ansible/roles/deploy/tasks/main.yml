@@ -1,12 +1,14 @@
 ---
 - name: Unpack backend
   ansible.builtin.unarchive:
-   #src: ~/project/backend/dist.tgz
-   src: ~/project/backend.tgz
+   src: ~/project/backend/dist.tgz
+  #  src: ~/project/backend.tgz
    dest: ~/
    remote_src: no
 
-# Start PM2 taken from https://knowledge.udacity.com/questions/394294
+- name: Rename ~/dist -> ~/backend
+  command: mv ~/dist ~/backend
+
 - name: Start PM2
   shell: |
     cd ~/backend

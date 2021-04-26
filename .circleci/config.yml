@@ -115,6 +115,7 @@ jobs:
       # Restore from cache
       # Your job code here
       - checkout
+      # Restore from cache
       - restore_cache:
           keys: [<< pipeline.id >>-frontend-build]
       # Your job code here
@@ -130,8 +131,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
-      # Restore from cache
-      # Your job code here
       - checkout
       # Restore from cache
       - restore_cache:
@@ -174,7 +173,8 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [<< pipeline.id >>-backend-build]
+      # Your job code here
       - run:
           name: Scan backend dependencies
           command: |
@@ -276,6 +276,8 @@ jobs:
             apk add --update ansible
             pip3 install --upgrade pip \
               && pip3 install awscli
+            # apk add curl
+            # apk add sudo
             #exit 1
       # - aws-cli/install
       - run:
@@ -375,6 +377,10 @@ jobs:
             - "bc:9d:fb:17:2f:10:83:6c:b7:f7:39:a5:b5:e6:c2:36"
       - attach_workspace:
           at: ~/
+      # - restore_cache:
+      #     keys:
+      #       - << pipeline.id >>-backend-build
+      #       - << pipeline.id >>-deploy-infra
       - run:
           name: Install dependencies
           command: |
