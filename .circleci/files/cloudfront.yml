@@ -20,7 +20,7 @@ Resources:
     Properties:
       DistributionConfig:
         Origins:
-          - DomainName: !Sub "udapeople-${WorkflowIDnew}.s3-website-us-west-2.amazonaws.com"
+          - DomainName: !Sub "udapeople-${WorkflowIDnew}.s3-website-us-east-2.amazonaws.com"
             Id: webpage
             CustomOriginConfig:
               HTTPPort: 80

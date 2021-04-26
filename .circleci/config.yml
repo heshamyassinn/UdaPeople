@@ -338,7 +338,7 @@ jobs:
             npm run build
             s3Bucket=$(echo "udapeople-${CIRCLE_WORKFLOW_ID:0:7}")
             aws s3 sync dist s3://$s3Bucket/
-            s3FullUrl=("http://$s3Bucket.s3-website-eu-west-1.amazonaws.com")
+            s3FullUrl=("http://$s3Bucket.s3-website-us-east-2.amazonaws.com")
             curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "$s3FullUrl" https://api.memstash.io/values/s3bucket_${CIRCLE_WORKFLOW_ID}
       - persist_to_workspace:
           root: .
@@ -478,9 +478,9 @@ workflows:
     - test-backend:
         requires: [build-backend]
     - scan-backend:
-        requires: [build-backend]
+        requires: [test-backend]
     - scan-frontend:
-        requires: [build-frontend]
+        requires: [test-frontend]
     - deploy-infrastructure:
         requires: [scan-frontend, scan-backend]
         filters:
