@@ -2,7 +2,7 @@ Description: >
   UdaPeople backend stack.
 
 Parameters:
-  WorkflowID:
+  ID:
     Description: Unique identifier.
     Type: String
 
@@ -10,8 +10,8 @@ Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub UdaPeople-${WorkflowID}
-      GroupDescription: Allow port 22 and port 3030.
+      GroupName: !Sub UdaPeople-${ID}
+      GroupDescription: Allow port 22, port 3030, port 9090, port 9100, and port 9093.
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -26,12 +26,12 @@ Resources:
           ToPort: 9090
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 9093
-          ToPort: 9093
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
           FromPort: 9100
           ToPort: 9100
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9093
+          ToPort: 9093
           CidrIp: 0.0.0.0/0
 
   EC2Instance:
@@ -46,11 +46,4 @@ Resources:
       ImageId: ami-0fb1e27304d83032f
       Tags:
         - Key: Name
-          Value: !Sub backend-${WorkflowID}
-
-Outputs:
-  WorkflowID:
-    Description: The workflow ID to identify this stack
-    Value: !Sub "${WorkflowID}"
-    # Export:
-    #   Name: Backend-WorkflowID
+          Value: !Sub backend-${ID}
