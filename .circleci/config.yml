@@ -12,7 +12,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws s3 rm --recursive s3://udapeople-${CIRCLE_WORKFLOW_ID} 
+            aws s3 rm --recursive s3://udapeople-h-${CIRCLE_WORKFLOW_ID:0:7} 
             aws cloudformation delete-stack \
                 --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
             aws cloudformation delete-stack \
@@ -30,7 +30,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/migration)
+            SUCCESS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID:0:7}" --request GET https://api.memstash.io/values/migration)
             #SUCCESS=1
             if (( $SUCCESS==1 )); 
             then
@@ -210,11 +210,11 @@ jobs:
             cwid=$(echo "aws ec2 describe-instances --filters 'Name=tag:project,Values=udapeopleBackend_${CIRCLE_WORKFLOW_ID:0:7}' --query 'Reservations[*].Instances[*].PublicIpAddress' --output text")
             echo $cwid > backip.sh; chmod 755 backip.sh
             backendip=$(./backip.sh)
-            curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "$backendip" https://api.memstash.io/values/ec2_back_ip_${CIRCLE_WORKFLOW_ID}
+            curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "$backendip" https://api.memstash.io/values/ec2_back_ip_${CIRCLE_WORKFLOW_ID:0:7}
             cwid2=$(echo "aws ec2 describe-instances --filters 'Name=tag:project,Values="udapeopleBackend_${CIRCLE_WORKFLOW_ID:0:7}"' --query 'Reservations[*].Instances[*].PublicDnsName' --output text")
             echo $cwid2 > backurl.sh; chmod 755 backurl.sh
             backendurl=$(./backurl.sh)
-            curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "$backendurl" https://api.memstash.io/values/ec2_back_url_${CIRCLE_WORKFLOW_ID}
+            curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "$backendurl" https://api.memstash.io/values/ec2_back_url_${CIRCLE_WORKFLOW_ID:0:7}
             echo "[web]" > .circleci/ansible/inventory.txt
             echo  $backendip >> .circleci/ansible/inventory.txt
             cat  .circleci/ansible/inventory.txt
@@ -297,11 +297,11 @@ jobs:
             cat migrationresult.txt
             if [ $(grep -i "has been executed successfully" migrationresult.txt | wc -l) -ge 1 ]
               then 
-              curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "Migration Successful" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
-              curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+              curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "Migration Successful" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
               else
-              curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "Migration Failed" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
-              curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+              curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "Migration Failed" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
      # Here's where you will add some code to rollback on failure 
      #- destroy-environment
@@ -324,7 +324,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            API_IPback=$(curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/ec2_back_ip_${CIRCLE_WORKFLOW_ID})
+            API_IPback=$(curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/ec2_back_ip_${CIRCLE_WORKFLOW_ID:0:7})
             export API_URL=$(echo "http://$API_IPback:3030")
             cd frontend
             echo "${API_URL}" > apiurl.txt
@@ -336,10 +336,10 @@ jobs:
             cat apiurl.txt
             npm i
             npm run build
-            s3Bucket=$(echo "udapeople-${CIRCLE_WORKFLOW_ID:0:7}")
+            s3Bucket=$(echo "udapeople-h-${CIRCLE_WORKFLOW_ID:0:7}")
             aws s3 sync dist s3://$s3Bucket/
             s3FullUrl=("http://$s3Bucket.s3-website-us-east-2.amazonaws.com")
-            curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "$s3FullUrl" https://api.memstash.io/values/s3bucket_${CIRCLE_WORKFLOW_ID}
+            curl -H "Content-Type: text/plain" -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request PUT --data "$s3FullUrl" https://api.memstash.io/values/s3bucket_${CIRCLE_WORKFLOW_ID:0:7}
       - persist_to_workspace:
           root: .
           paths:
@@ -398,7 +398,7 @@ jobs:
       - run:
           name: Backend  Smoke test
           command: |
-            back_ip=$(curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/ec2_back_ip_${CIRCLE_WORKFLOW_ID})
+            back_ip=$(curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/ec2_back_ip_${CIRCLE_WORKFLOW_ID:0:7})
             if curl -s "http://$back_ip:3030/api/status" | grep "ok"
             then
               echo "Backend alive, Proceeding"
@@ -408,7 +408,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            front_url=$(curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/s3bucket_${CIRCLE_WORKFLOW_ID})
+            front_url=$(curl -H "token: d490af5f-be05-469d-afc1-dcc327a4d514" --request GET https://api.memstash.io/values/s3bucket_${CIRCLE_WORKFLOW_ID:0:7})
             if curl -s ${front_url} | grep "Welcome"
             then
               echo "Frontend alive"
@@ -455,8 +455,8 @@ jobs:
             echo $originalWorkflowID
             if [ -n "$originalWorkflowID" ]
             then
-              aws s3 rm s3://udapeople-$originalWorkflowID --recursive
-              aws s3 rb s3://udapeople-$originalWorkflowID --force
+              aws s3 rm s3://udapeople-h-$originalWorkflowID --recursive
+              aws s3 rb s3://udapeople-h-$originalWorkflowID --force
               aws cloudformation delete-stack --stack-name cloudfontlocal
               aws cloudformation delete-stack --stack-name cloudfontlocal
             else
