@@ -71,6 +71,7 @@ jobs:
       - checkout
       - run:
           name: test
+          command: |
             # your code here
             BACKEND_URL=`curl -H "token: p0n1xqdusztt9nxukla5" \
             --request GET https://api.memstash.io/values/BACKEND_IP`
