@@ -64,22 +64,22 @@ commands:
             }
             
 jobs:
-  testjob:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - run:
-          name: test
-          command: |
-            # your code here
-            BACKEND_URL=`curl -H "token: p0n1xqdusztt9nxukla5" \
-            --request GET https://api.memstash.io/values/BACKEND_IP`
-            ls -la
-            echo $API_URL
-            echo API_URL=http://$BACKEND_URL:3030 >> ".env"
-            cat .env
-      # - slack-fail
+  # testjob:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: test
+  #         command: |
+  #           # your code here
+  #           BACKEND_URL=`curl -H "token: p0n1xqdusztt9nxukla5" \
+  #           --request GET https://api.memstash.io/values/BACKEND_IP`
+  #           ls -la
+  #           echo $API_URL
+  #           echo API_URL=http://$BACKEND_URL:3030 >> ".env"
+  #           cat .env
+  #     # - slack-fail
 
   build-frontend:
     docker:
@@ -370,7 +370,7 @@ jobs:
             export API_URL="http://$BACKEND_URL:3030"
             ls -la
             echo $API_URL
-            echo API_URL=http://$BACKEND_IP:3030 >> "frontend/.env"
+            echo API_URL=http://$BACKEND_URL:3030 >> "frontend/.env"
             cat frontend/.env
             ls -la frontend/
       - run:
@@ -563,34 +563,34 @@ jobs:
 workflows:
   default:
     jobs:
-      - testjob
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [test-backend]
-      # - scan-frontend:
-      #     requires: [test-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     filters:
-      #         branches:
-      #           only:
-      #             - master
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations: 
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      # - testjob
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [test-backend]
+      - scan-frontend:
+          requires: [test-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+              branches:
+                only:
+                  - master
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations: 
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
