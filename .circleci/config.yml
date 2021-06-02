@@ -360,6 +360,7 @@ jobs:
             # deploy to s3 bucket
             npm install webpack-dev-server -g
             cd frontend
+            npm audit fix --force
             npm install
             npm run build
 
