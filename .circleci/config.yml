@@ -230,7 +230,7 @@ jobs:
             #save the new back-end url to memory
             curl -H "Content-Type: text/plain" \
               -H "token: f4i09ubhffeh7g71svao" --request PUT \
-              --data "$BACKEND_IP" https://api.memstash.io/values/BACKEND_IP
+              --data "$BACKEND_IP" https://api.memstash.io/values/BACKEND_IP_f4i09ubhffeh7g71svao
 
       - run:
           name: Dependencies
@@ -322,11 +322,11 @@ jobs:
             cd backend
             if grep -q "has been executed successfully." migrations.txt
             then
-            curl -H "Content-Type: text/plain" -H "token: f4i09ubhffeh7g71svao" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: f4i09ubhffeh7g71svao" --request PUT --data "1" https://api.memstash.io/values/migration
             else
-            curl -H "Content-Type: text/plain" -H "token: f4i09ubhffeh7g71svao" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: f4i09ubhffeh7g71svao" --request PUT --data "0" https://api.memstash.io/values/migration
             fi
-            SUCCESS=$(curl -H "token: f4i09ubhffeh7g71svao" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl -H "token: f4i09ubhffeh7g71svao" --request GET https://api.memstash.io/values/migration)
             echo "${SUCCESS}"
       # Here's where you will add some code to rollback on failure
       #- slack-fail
@@ -354,7 +354,7 @@ jobs:
             cd frontend 
             ls -la
             BACKEND_URL=`curl -H "token: f4i09ubhffeh7g71svao" \
-            --request GET https://api.memstash.io/values/BACKEND_IP`
+            --request GET https://api.memstash.io/values/BACKEND_IP_f4i09ubhffeh7g71svao`
             export API_URL="http://$BACKEND_URL:3030"
             echo $API_URL
             echo API_URL="http://$BACKEND_IP:3030" >> .env
@@ -439,7 +439,7 @@ jobs:
           name: Backend smoke test.
           command: |
             BACKEND_URL=`curl -H "token: f4i09ubhffeh7g71svao" \
-            --request GET https://api.memstash.io/values/BACKEND_IP`
+            --request GET https://api.memstash.io/values/BACKEND_IP_f4i09ubhffeh7g71svao`
             echo $BACKEND_URL
             API_URL="http://$BACKEND_URL:3030/api/status"
             echo "API_URL: " $API_URL
