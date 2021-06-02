@@ -367,10 +367,10 @@ jobs:
             # your code here
             BACKEND_URL=`curl -H "token: p0n1xqdusztt9nxukla5" \
             --request GET https://api.memstash.io/values/BACKEND_IP`
-            export API_URL="http://$BACKEND_URL:3030"
+            export API_URL="https://$BACKEND_URL:3030"
             ls -la
             echo $API_URL
-            echo API_URL=http://$BACKEND_URL:3030 >> "frontend/.env"
+            echo API_URL=https://$BACKEND_URL:3030 >> "frontend/.env"
             cat frontend/.env
             ls -la frontend/
       - run:
