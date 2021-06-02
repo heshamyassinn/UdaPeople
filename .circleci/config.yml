@@ -273,6 +273,7 @@ jobs:
                 awscli \
             && rm -rf /var/cache/apk/*
             apk add --update ansible
+            apk --no-cache add curl
             ansible-galaxy install weareinteractive.environment
             pip install awscli
       
@@ -349,11 +350,15 @@ jobs:
           name: Get backend url
           command: |
             # your code here
+            ls -la
+            cd frontend 
+            ls -la
             BACKEND_URL=`curl -H "token: b7e984d1-b69e-4347-8b69-0052ab6c4145" \
             --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
             export API_URL="http://$BACKEND_URL:3030"
             echo $API_URL
-            echo API_URL="http://$BACKEND_IP:3030" >> "frontend/.env"
+            echo API_URL="http://$BACKEND_IP:3030" >> .env
+            
       - run:
           name: Deploy frontend objects
           command: |
