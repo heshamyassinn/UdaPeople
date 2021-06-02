@@ -320,11 +320,11 @@ jobs:
             cd backend
             if grep -q "has been executed successfully." migrations.txt
             then
-            curl -H "Content-Type: text/plain" -H "token: p0n1xqdusztt9nxukla5" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: p0n1xqdusztt9nxukla5" --request PUT --data "1" https://api.memstash.io/values/migration
             else
-            curl -H "Content-Type: text/plain" -H "token: p0n1xqdusztt9nxukla5" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: p0n1xqdusztt9nxukla5" --request PUT --data "0" https://api.memstash.io/values/migration
             fi
-            SUCCESS=$(curl -H "token: p0n1xqdusztt9nxukla5" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl -H "token: p0n1xqdusztt9nxukla5" --request GET https://api.memstash.io/values/migration)
             echo "${SUCCESS}"
       # Here's where you will add some code to rollback on failure
       #- slack-fail
