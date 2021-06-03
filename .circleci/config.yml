@@ -87,7 +87,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a]
       - run:
           name: Build front-end
           command: |
@@ -96,7 +96,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build
+          key: frontend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a
       - slack-fail
 
   build-backend:
@@ -105,7 +105,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a]
       - run:
           name: Back-end build
           command: |
@@ -114,7 +114,7 @@ jobs:
              npm run build
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build
+          key: backend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a
       - slack-fail
 
   test-frontend:
@@ -127,7 +127,7 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a]
       - run:
           name: Install prerequsites
           command: |            
@@ -150,13 +150,13 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a]
       - run:
           name: Install prerequsites
           command: |            
              sudo apt -y install jq tar gzip git curl
       - restore_cache:
-          keys: ["backend-build"]
+          keys: ["backend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a"]
       - run:
           name: Run backend tests
           command: |
@@ -175,7 +175,7 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a]
       - run:
           name: Scan frontend dependencies
           command: |
@@ -195,7 +195,7 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build-8033924a-bf04-4aa9-aa6d-0b7a799de04a]
       - run:
           name: Scan backend dependencies
           command: |
