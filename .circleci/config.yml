@@ -35,7 +35,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl -H "token: p0n1xqdusztt9nxukla5" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            SUCCESS=$(curl -H "token: e6m6afr6wsfkf7r5pnrr" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -73,7 +73,7 @@ jobs:
   #         name: test
   #         command: |
   #           # your code here
-  #           BACKEND_URL=`curl -H "token: p0n1xqdusztt9nxukla5" \
+  #           BACKEND_URL=`curl -H "token: e6m6afr6wsfkf7r5pnrr" \
   #           --request GET https://api.memstash.io/values/BACKEND_IP`
   #           ls -la
   #           echo $API_URL
@@ -246,7 +246,7 @@ jobs:
             cat .circleci/ansible/inventory.txt
             #save the new back-end url to memory
             curl -H "Content-Type: text/plain" \
-              -H "token: p0n1xqdusztt9nxukla5" --request PUT \
+              -H "token: e6m6afr6wsfkf7r5pnrr" --request PUT \
               --data "$BACKEND_IP" https://api.memstash.io/values/BACKEND_IP
 
       - run:
@@ -337,11 +337,11 @@ jobs:
             cd backend
             if grep -q "has been executed successfully." migrations.txt
             then
-            curl -H "Content-Type: text/plain" -H "token: p0n1xqdusztt9nxukla5" --request PUT --data "1" https://api.memstash.io/values/migration
+            curl -H "Content-Type: text/plain" -H "token: e6m6afr6wsfkf7r5pnrr" --request PUT --data "1" https://api.memstash.io/values/migration
             else
-            curl -H "Content-Type: text/plain" -H "token: p0n1xqdusztt9nxukla5" --request PUT --data "0" https://api.memstash.io/values/migration
+            curl -H "Content-Type: text/plain" -H "token: e6m6afr6wsfkf7r5pnrr" --request PUT --data "0" https://api.memstash.io/values/migration
             fi
-            SUCCESS=$(curl -H "token: p0n1xqdusztt9nxukla5" --request GET https://api.memstash.io/values/migration)
+            SUCCESS=$(curl -H "token: e6m6afr6wsfkf7r5pnrr" --request GET https://api.memstash.io/values/migration)
             echo "${SUCCESS}"
       # Here's where you will add some code to rollback on failure
       #- slack-fail
@@ -365,25 +365,26 @@ jobs:
           name: Get backend url
           command: |
             # your code here
-            BACKEND_URL=`curl -H "token: p0n1xqdusztt9nxukla5" \
+            BACKEND_URL=`curl -H "token: e6m6afr6wsfkf7r5pnrr" \
             --request GET https://api.memstash.io/values/BACKEND_IP`
-            export API_URL="https://$BACKEND_URL:3030"
-            ls -la
+            export API_URL="http://$BACKEND_URL:3030"
             echo $API_URL
-            echo API_URL=https://$BACKEND_URL:3030 >> "frontend/.env"
-            cat frontend/.env
-            ls -la frontend/
       - run:
           name: Deploy frontend objects
           command: |
             # deploy to s3 bucket
-            npm install webpack-dev-server -g
             cd frontend
-            npm install
-            npm run build
-            ls -la 
-            ls -la ./dist
-            aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            npm audit fix 
+            BACKEND_URL=$(curl -H "token: e6m6afr6wsfkf7r5pnrr" \
+              --request GET https://api.memstash.io/values/hosts-deployed-${CIRCLE_WORKFLOW_ID:0:7})
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL=${API_URL}"
+            echo API_URL=$API_URL > .env
+            echo ENVIRONMENT=production >> .env
+            cat ".env"
+            npm run build-prod
+            cd dist
+            aws s3 sync . s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --delete
             
       # Here's where you will add some code to rollback on failure      
       - slack-fail
@@ -452,7 +453,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_URL=`curl -H "token: p0n1xqdusztt9nxukla5" \
+            BACKEND_URL=`curl -H "token: e6m6afr6wsfkf7r5pnrr" \
             --request GET https://api.memstash.io/values/BACKEND_IP`
             echo $BACKEND_URL
             API_URL="http://$BACKEND_URL:3030/api/status"
@@ -534,7 +535,7 @@ jobs:
           name: Remove old stacks and files
           command: |
             # get old WorkFlowId
-            OldWorkflowID=$(curl -H "token: p0n1xqdusztt9nxukla5" \
+            OldWorkflowID=$(curl -H "token: e6m6afr6wsfkf7r5pnrr" \
                         --request GET https://api.memstash.io/values/OldWorkflowID)
             
             echo $OldWorkflowID
