@@ -320,7 +320,7 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             echo NODE_ENV=production >> "backend/.env"
             cat backend/.env
-        - run:
+      - run:
           name: Configure server with ansible
           no_output_timeout: 30m
           command: |
