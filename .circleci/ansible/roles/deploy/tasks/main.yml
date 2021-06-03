@@ -27,7 +27,7 @@
 - name: Uncompress Backend
   shell: |
     cd /home/ubuntu/backend
-    tar xvzf artifact.tar.gz -C .
+    tar xvzf backend.tar.gz -C .
     ls -la
     
 - name: Build
