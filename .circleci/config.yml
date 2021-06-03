@@ -380,7 +380,7 @@ jobs:
             npm audit fix 
             BACKEND_URL=$(curl -H "token: 961pbhlk5p2yntghi8z4" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
-            export API_URL="http://${BACKEND_IP}:3030"
+            export API_URL="http://${BACKEND_URL}:3030"
             echo "API_URL=${API_URL}"
             echo API_URL=$API_URL > .env
             echo ENVIRONMENT=production >> .env
