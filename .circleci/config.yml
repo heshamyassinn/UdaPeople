@@ -394,10 +394,10 @@ jobs:
             # your code here
             BACKEND_URL=`curl -H "token: ${CIRCLE_WORKFLOW_ID:0:7}" \
             --request GET https://api.memstash.io/values/BACKEND_IP`
-            export API_URL="http://$BACKEND_URL:3030"
+            export API_URL="https://$BACKEND_URL:3030"
             ls -la
             echo $API_URL
-            echo API_URL=http://$BACKEND_URL:3030 >> "frontend/.env"
+            echo API_URL=https://$BACKEND_URL:3030 >> "frontend/.env"
             cat frontend/.env
             ls -la frontend/
       - run:
@@ -408,7 +408,7 @@ jobs:
             npm audit fix 
             BACKEND_URL=$(curl -H "token: ${CIRCLE_WORKFLOW_ID:0:7}" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
-            export API_URL="http://${BACKEND_URL}:3030"
+            export API_URL="https://${BACKEND_URL}:3030"
             echo "API_URL=${API_URL}"
             echo API_URL=$API_URL > .env
             echo ENVIRONMENT=production >> .env
