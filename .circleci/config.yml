@@ -406,15 +406,14 @@ jobs:
             # deploy to s3 bucket
             cd frontend
             npm audit fix 
-            BACKEND_URL=$(curl -H "token: 0be42881-6cc0-492b-991f-6a00ea463187" \
+            BACKEND_URL=$(curl -H "token: ${CIRCLE_WORKFLOW_ID:0:7}" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
             export API_URL="http://${BACKEND_URL}:3030"
             echo "API_URL=${API_URL}"
             echo API_URL=$API_URL > .env
             echo ENVIRONMENT=production >> .env
             cat ".env"
-            npm run build
-            cd dist
+            npm run build:prod
             aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             
       # Here's where you will add some code to rollback on failure      
