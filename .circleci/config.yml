@@ -87,7 +87,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-build-961pbhlk5p2yntghi8z4]
       - run:
           name: Build front-end
           command: |
@@ -96,7 +96,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build
+          key: frontend-build-961pbhlk5p2yntghi8z4
       - slack-fail
 
   build-backend:
@@ -105,7 +105,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build-961pbhlk5p2yntghi8z4]
       - run:
           name: Back-end build
           command: |
@@ -114,7 +114,7 @@ jobs:
              npm run build
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build
+          key: backend-build-961pbhlk5p2yntghi8z4
       - slack-fail
 
   test-frontend:
@@ -127,7 +127,7 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-build-961pbhlk5p2yntghi8z4]
       - run:
           name: Install prerequsites
           command: |            
@@ -153,7 +153,7 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build-961pbhlk5p2yntghi8z4]
       - run:
           name: Install prerequsites
           command: |            
@@ -179,7 +179,7 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-build-961pbhlk5p2yntghi8z4]
       - run:
           name: Scan frontend dependencies
           command: |
@@ -202,7 +202,7 @@ jobs:
       # Your job code here
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build-961pbhlk5p2yntghi8z4]
       - run:
           name: Scan backend dependencies
           command: |
@@ -225,7 +225,7 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
-            --tags project=udapeople \
+            --tags project=udapeople-961pbhlk5p2yntghi8z4 \
             --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
               
@@ -237,7 +237,7 @@ jobs:
             # build-frontend:
             aws cloudformation deploy \
             --template-file .circleci/files/frontend.yml \
-            --tags project=udapeople \
+            --tags project=udapeople-961pbhlk5p2yntghi8z4 \
             --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       
@@ -246,7 +246,7 @@ jobs:
           command: |
             BACKEND_IP=$(aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project,Values=udapeople" \
+              --filters "Name=tag:project,Values=udapeople-961pbhlk5p2yntghi8z4" \
               --output text)  
 
             echo "$BACKEND_IP" >> .circleci/ansible/inventory.txt
@@ -395,11 +395,7 @@ jobs:
             BACKEND_URL=`curl -H "token: ${CIRCLE_WORKFLOW_ID:0:7}" \
             --request GET https://api.memstash.io/values/BACKEND_IP`
             export API_URL="http://$BACKEND_URL:3030"
-            ls -la
             echo $API_URL
-            echo API_URL=http://$BACKEND_URL:3030 >> "frontend/.env"
-            cat frontend/.env
-            ls -la frontend/
       - run:
           name: Deploy frontend objects
           command: |
@@ -516,7 +512,7 @@ jobs:
 
             curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID:0:7}" \
                         --request PUT --data "${OldWorkflowID}" \
-                        https://api.memstash.io/values/OldWorkflowID_${CIRCLE_WORKFLOW_ID:0:7}
+                        https://api.memstash.io/values/OldWorkflowID
 
       - run:
           name: Update cloudfront distribution
